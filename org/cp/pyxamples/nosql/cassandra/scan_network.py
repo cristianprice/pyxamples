@@ -1,6 +1,7 @@
 from cassandra.cluster import Cluster
 from collections import defaultdict
 import logging
+import pickle
 
 global_id = '0c539200-605c-11e6-9ddc-df53cc771bed'
 
@@ -15,10 +16,6 @@ def logging_setup():
 
 
 def create_session():
-    """
-
-    :rtype: object
-    """
     cluster_local = Cluster(contact_points=['10.11.1.131', '10.11.1.133'], protocol_version=3, executor_threads=10)
     return cluster_local, cluster_local.connect()
 
@@ -40,7 +37,7 @@ def search():
     results = session.execute(query='select * from woow_backend.accounts')
 
     count = 0
-    parent_hierarchy = defaultdict(set)
+
     for row in results:
         parent_id = str(row.parent_id)
         id = str(row.id)
@@ -49,13 +46,25 @@ def search():
             parent_hierarchy[parent_id].add(id)
             count += 1
 
-    hierarchy = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0}
-    count_hierarchy(global_id, 1, parent_hierarchy, hierarchy)
-
-    log.info('%s', hierarchy)
     cluster.shutdown()
 
 
+def save(h_obj):
+    pickle.dump(h_obj, open('data.bin', 'wb'))
+    return
+
+
 log = logging_setup()
-cluster, session = create_session()
-search()
+
+try:
+    parent_hierarchy = pickle.load(open('data.bin', 'rb'))
+except FileNotFoundError:
+    log.error('Could not find local file binary. Getting data from db.')
+    parent_hierarchy = defaultdict(set)
+    cluster, session = create_session()
+    search()
+    save(parent_hierarchy)
+
+hierarchy = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0}
+count_hierarchy(global_id, 1, parent_hierarchy, hierarchy)
+log.info('%s', hierarchy)
