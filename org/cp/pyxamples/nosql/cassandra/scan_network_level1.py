@@ -1,7 +1,5 @@
 from cassandra.cluster import Cluster
-from collections import defaultdict
 import logging
-import pickle
 
 global_id = '0c539200-605c-11e6-9ddc-df53cc771bed'
 

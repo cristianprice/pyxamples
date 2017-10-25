@@ -1,4 +1,5 @@
 from cassandra.cluster import Cluster
+from cassandra.query import SimpleStatement
 from collections import defaultdict
 import logging
 import pickle
@@ -34,14 +35,13 @@ def count_hierarchy(usr_id, level, parent_hierarchy, hierarchy):
 
 
 def search():
-    results = session.execute(query='select * from woow_backend.accounts')
-
+    results = session.execute(SimpleStatement(query='select * from woow_backend.accounts', fetch_size=10000))
     count = 0
 
     for row in results:
         parent_id = str(row.parent_id)
         id = str(row.id)
-        if id != parent_id:
+        if (id != parent_id and (row.account_status == 'CREATED' or row.account_status == 'ENABLED')):
             log.info('%s %s %s', count, row.id, row.parent_id)
             parent_hierarchy[parent_id].add(id)
             count += 1
