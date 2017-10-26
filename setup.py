@@ -9,5 +9,5 @@ setup(
     author='price',
     author_email='',
     description='',
-    requires=['matplotlib', 'numpy', 'flask', 'cassandra-driver']
+    requires=['matplotlib', 'numpy', 'flask', 'cassandra-driver', 'scrapelib', 'nltk', 'pandas']
 )
